@@ -47,48 +47,49 @@ Parse the JSON and present a markdown summary. The presentation has three tiers 
 **Total tasks**: 1 | Passed: 0 | Failed: 1 | Errored: 0
 ```
 
-**Tier 2 — Stage sections** grouped by execution phase, each showing its task results table:
+**Tier 2 — Stage sections** grouped by execution phase, each showing its task results table. A run may have tasks from multiple vendors — show them all:
 
 ```
 ### Post-Plan Tasks (stage status: passed)
 
 | Task Name | Status | Enforcement | Message | Link |
 |-----------|--------|-------------|---------|------|
-| Apptio-Cloudability | failed | advisory | Total Cost before: 31.54, after: 31.64, diff: +0.10 | [Results](url) |
+| Snyk Security Scan | passed | mandatory | No high-severity vulnerabilities found | [Results](url) |
+| Cost Estimator | failed | advisory | Total Cost before: 31.54, after: 31.64, diff: +0.10 | [Results](url) |
+| OPA Policy Check | failed | mandatory | 2 policies violated | [Results](url) |
 ```
 
-**Tier 3 — Outcome sub-tables** under each task result that has outcomes:
+**Tier 3 — Outcome sub-tables** under each task result that has outcomes. Outcome categories vary by vendor — don't assume specific names. Present whatever categories the task returns:
 
 ```
-#### Apptio-Cloudability — Outcomes
+#### OPA Policy Check — Outcomes
 
 | Outcome | Description | Status | Severity |
 |---------|-------------|--------|----------|
-| Estimation | Cost Estimation Result | Passed | — |
-| Policy | Policy Evaluation Result | Failed | Gated |
-| Recommendation | Recommendation Result | Passed | — |
+| tagging-policy | Required tags must be present | Failed | Gated |
+| instance-type-policy | Allowed instance types | Passed | — |
 ```
 
 If an outcome has `body_html` content, render it in a collapsible block:
 
 ```
 <details>
-<summary>Policy Evaluation Detail</summary>
+<summary>tagging-policy Detail</summary>
 
-[HTML body content — failing resources, tag violations, etc.]
+[HTML body content — failing resources, policy violations, etc.]
 
 </details>
 ```
 
-**Tier 4 — Actionable insights** after presenting the tables, synthesize the most important findings from the outcome bodies. The `body_html` content often contains the richest detail — specific failing resources, tag violations, cost savings recommendations, or compliance issues. Summarize these findings in plain language so the user doesn't have to parse raw HTML. For example:
+**Tier 4 — Actionable insights** after presenting the tables, synthesize the most important findings from the outcome bodies. The `body_html` content often contains the richest detail — specific failing resources, policy violations, security vulnerabilities, cost impacts, or compliance issues. Summarize these findings in plain language so the user doesn't have to parse raw HTML. Tailor the summary to whatever the run tasks actually reported. For example:
 
 > **Key findings:**
 >
-> - **Policy**: 23 resources failing — 22 missing `cost-center` tag (advisory), 1 EC2 instance using `t3.small` instead of required `t2.small` (gated)
-> - **Cost**: Monthly impact +$0.10 USD, driven by a new CloudWatch metric alarm
-> - **Recommendation**: Switch EC2 from `t3.small` to `t4g.small` for ~20% cost savings
+> - **OPA Policy Check**: 3 resources missing required `cost-center` tag (gated — blocks apply); all instance types within policy
+> - **Snyk Security Scan**: No high-severity CVEs detected; 2 low-severity findings in `aws_lambda_function.processor`
+> - **Cost Estimator**: Monthly impact +$0.10 USD, driven by a new CloudWatch metric alarm
 
-This synthesis is what makes the skill output more valuable than just showing raw tables — it highlights what the user needs to act on.
+The specific findings will vary by vendor and configuration. The goal is to distill the raw outcome data into what the user needs to act on — whether that's fixing policy violations, remediating vulnerabilities, reviewing cost changes, or addressing compliance gaps.
 
 ### Handling edge cases
 
