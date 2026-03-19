@@ -62,7 +62,7 @@ if [[ "$INPUT" =~ ^https?:// ]]; then
     exit 1
   fi
   # Extract hostname from URL if TFE_HOSTNAME not already set
-  PARSED_HOST=$(echo "$INPUT" | grep -oE '^https?://[^/]+' | sed 's|^https\?://||')
+  PARSED_HOST=$(echo "$INPUT" | grep -oE '^https?://[^/]+' | sed 's|^https://||;s|^http://||')
   TFE_HOSTNAME="${TFE_HOSTNAME:-$PARSED_HOST}"
 else
   # Validate run ID format for direct input
